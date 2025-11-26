@@ -1,79 +1,137 @@
-# Copyright (c) 2015, Autonomous Systems Lab, ETH Zurich
-# All rights reserved.
-#
-# Redistribution and use in source and binary forms, with or without
-# modification, are permitted provided that the following conditions are met:
-#     * Redistributions of source code must retain the above copyright
-#       notice, this list of conditions and the following disclaimer.
-#     * Redistributions in binary form must reproduce the above copyright
-#       notice, this list of conditions and the following disclaimer in the
-#       documentation and/or other materials provided with the distribution.
-#     * Neither the name of the <organization> nor the
-#       names of its contributors may be used to endorse or promote products
-#       derived from this software without specific prior written permission.
-#
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
-# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
-# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.16)
 project(eigen_checks)
 
-find_package(catkin_simple REQUIRED)
-catkin_simple()
+if(NOT CMAKE_CXX_STANDARD)
+	set(CMAKE_CXX_STANDARD 14)
+endif()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_definitions(--std=c++0x -Wall -Wextra -pedantic)
+add_compile_options(
+		-Wall
+		-Wextra
+		-pedantic
+)
 
-cs_add_library(${PROJECT_NAME} src/eigen-checks.cc)
+# Build system
+find_package(ament_cmake REQUIRED)
 
-find_package (Threads)
-catkin_add_gtest(test_gtest_near
-	test/test_gtest-near.cc)
-target_link_libraries(test_gtest_near ${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+# Eigen is best pulled in via eigen3_cmake_module in ROS 2
+find_package(eigen3_cmake_module REQUIRED)
+find_package(Eigen3 REQUIRED)
 
-catkin_add_gtest(test_gtest_equal
-  test/test_gtest-equal.cc)
-target_link_libraries(test_gtest_equal ${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+# Glog / gflags assumed to come from system or vendor packages
+# (rosdep keys: 'glog', 'gflags')
+find_package(glog REQUIRED)
+find_package(gflags REQUIRED)
 
-catkin_add_gtest(test_gtest_zero
-  test/test_gtest-zero.cc)
-target_link_libraries(test_gtest_zero ${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+find_package(Threads REQUIRED)
 
-catkin_add_gtest(test_gtest_equal_double
-  test/test_gtest-equal-double.cc)
-target_link_libraries(test_gtest_equal_double ${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+# Library
+add_library(${PROJECT_NAME} src/eigen-checks.cc)
 
-catkin_add_gtest(test_glog_near
-  test/test_glog-near.cc)
-target_link_libraries(test_glog_near ${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+target_include_directories(${PROJECT_NAME}
+		PUBLIC
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+		$<INSTALL_INTERFACE:include>
+)
 
-catkin_add_gtest(test_glog_equal
-  test/test_glog-equal.cc)
-target_link_libraries(test_glog_equal ${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(${PROJECT_NAME}
+		PUBLIC
+		Eigen3::Eigen
+		glog::glog
+		gflags
+		Threads::Threads
+)
 
-catkin_add_gtest(test_glog_zero
-  test/test_glog-zero.cc)
-target_link_libraries(test_glog_zero ${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+# Export targets & dependencies for find_package(eigen_checks)
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+ament_export_dependencies(
+		eigen3_cmake_module
+		Eigen3
+		glog
+		gflags
+)
 
-catkin_add_gtest(test_glog_equal_double
-  test/test_glog-equal-double.cc)
-target_link_libraries(test_glog_equal_double ${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+# Tests (rough port of catkin_add_gtest → ament_add_gtest)
+if(BUILD_TESTING)
+	find_package(ament_cmake_gtest REQUIRED)
 
-catkin_add_gtest(test_glog-zero-sized-types
-  test/test_glog-zero-sized-types.cc)
-target_link_libraries(test_glog-zero-sized-types ${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+	set(TEST_LIBS ${PROJECT_NAME} Threads::Threads)
 
-catkin_add_gtest(test_gtest-zero-sized-types
-  test/test_gtest-zero-sized-types.cc)
-target_link_libraries(test_gtest-zero-sized-types ${PROJECT_NAME} ${CMAKE_THREAD_LIBS_INIT})
+	ament_add_gtest(test_gtest_near
+			test/test_gtest-near.cc)
+	if(TARGET test_gtest_near)
+		target_link_libraries(test_gtest_near ${TEST_LIBS})
+	endif()
 
-cs_install()
+	ament_add_gtest(test_gtest_equal
+			test/test_gtest-equal.cc)
+	if(TARGET test_gtest_equal)
+		target_link_libraries(test_gtest_equal ${TEST_LIBS})
+	endif()
 
-cs_export(INCLUDE_DIRS include
-          CFG_EXTRAS eigen_checks-extras.cmake)
+	ament_add_gtest(test_gtest_zero
+			test/test_gtest-zero.cc)
+	if(TARGET test_gtest_zero)
+		target_link_libraries(test_gtest_zero ${TEST_LIBS})
+	endif()
+
+	ament_add_gtest(test_gtest_equal_double
+			test/test_gtest-equal-double.cc)
+	if(TARGET test_gtest_equal_double)
+		target_link_libraries(test_gtest_equal_double ${TEST_LIBS})
+	endif()
+
+	ament_add_gtest(test_glog_near
+			test/test_glog-near.cc)
+	if(TARGET test_glog_near)
+		target_link_libraries(test_glog_near ${TEST_LIBS})
+	endif()
+
+	ament_add_gtest(test_glog_equal
+			test/test_glog-equal.cc)
+	if(TARGET test_glog_equal)
+		target_link_libraries(test_glog_equal ${TEST_LIBS})
+	endif()
+
+	ament_add_gtest(test_glog_zero
+			test/test_glog-zero.cc)
+	if(TARGET test_glog_zero)
+		target_link_libraries(test_glog_zero ${TEST_LIBS})
+	endif()
+
+	ament_add_gtest(test_glog_equal_double
+			test/test_glog-equal-double.cc)
+	if(TARGET test_glog_equal_double)
+		target_link_libraries(test_glog_equal_double ${TEST_LIBS})
+	endif()
+
+	ament_add_gtest(test_glog_zero_sized_types
+			test/test_glog-zero-sized-types.cc)
+	if(TARGET test_glog_zero_sized_types)
+		target_link_libraries(test_glog_zero_sized_types ${TEST_LIBS})
+	endif()
+
+	ament_add_gtest(test_gtest_zero_sized_types
+			test/test_gtest-zero-sized-types.cc)
+	if(TARGET test_gtest_zero_sized_types)
+		target_link_libraries(test_gtest_zero_sized_types ${TEST_LIBS})
+	endif()
+endif()
+
+# Install
+install(
+		TARGETS ${PROJECT_NAME}
+		EXPORT export_${PROJECT_NAME}
+		ARCHIVE DESTINATION lib
+		LIBRARY DESTINATION lib
+		RUNTIME DESTINATION bin
+)
+
+install(
+		DIRECTORY include/
+		DESTINATION include
+)
+
+ament_package()

@@ -31,7 +31,7 @@
 #include <gtest/gtest.h>
 #include <glog/logging.h>
 
-#include <eigen-checks/internal/gtest-equal.h>
+#include <eigen_checks/internal/gtest-equal.h>
 
 template <typename Scalar>
 class EigenChecks : public testing::Test {

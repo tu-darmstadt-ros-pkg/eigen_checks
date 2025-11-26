@@ -27,7 +27,7 @@
 #include <limits>
 #include <type_traits>
 
-#include <eigen-checks/internal/gtest-equal.h>
+#include <eigen_checks/internal/gtest-equal.h>
 
 #define EIGEN_MATRIX_EQUAL(MatrixA, MatrixB)                                 \
   eigen_checks::internal::MatricesEqual(MatrixA, #MatrixA, MatrixB, #MatrixB, \

@@ -27,7 +27,7 @@
 #include <limits>
 #include <type_traits>
 
-#include <eigen-checks/internal/gtest-equal.h>
+#include <eigen_checks/internal/gtest-equal.h>
 #include <glog/logging.h>
 
 // To allow the user to append custom messages we store the result of the

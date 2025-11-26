@@ -52,6 +52,7 @@ ament_export_dependencies(
 		glog
 		gflags
 )
+ament_export_include_directories(include)
 
 # Tests (rough port of catkin_add_gtest → ament_add_gtest)
 if(BUILD_TESTING)
@@ -63,6 +64,7 @@ if(BUILD_TESTING)
 			test/test_gtest-near.cc)
 	if(TARGET test_gtest_near)
 		target_link_libraries(test_gtest_near ${TEST_LIBS})
+
 	endif()
 
 	ament_add_gtest(test_gtest_equal

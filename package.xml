@@ -16,8 +16,9 @@
 
   <depend>eigen3_cmake_module</depend>
 
-  <depend>glog</depend>
-  <depend>gflags</depend>
+  <depend>gtest</depend>
+  <depend>libgoogle-glog-dev</depend>
+  <depend>libgflags-dev</depend>
 
   <test_depend>ament_cmake_gtest</test_depend>
 

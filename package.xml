@@ -1,24 +1,24 @@
-<?xml version="1.0"?>
+<?xml version='1.0' encoding='UTF-8'?>
 <package format="3">
   <name>eigen_checks</name>
   <version>0.0.1</version>
   <description>Glog and Gtest check, assert, expect macros for Eigen types.</description>
 
   <maintainer email="simon.lynen@mavt.ethz.ch">simonlynen</maintainer>
-  <author>Simon Lynen</author>
   <license>New BSD</license>
 
   <url type="website">https://github.com/ethz-asl/eigen_checks</url>
   <url type="bugtracker">https://github.com/ethz-asl/eigen_checks/issues</url>
 
+  <author>Simon Lynen</author>
   <!-- ROS 2 build system -->
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <depend>eigen</depend>
   <depend>eigen3_cmake_module</depend>
-
   <depend>gtest</depend>
-  <depend>libgoogle-glog-dev</depend>
   <depend>libgflags-dev</depend>
+  <depend>libgoogle-glog-dev</depend>
 
   <test_depend>ament_cmake_gtest</test_depend>
 

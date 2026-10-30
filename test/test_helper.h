@@ -129,14 +129,19 @@ TYPED_TEST_CASE(EigenChecks, ScalarTypes);
 
 #define GLOG_TEST_EXPECT_NO_DEATH(X) X
 
-/*#define GLOG_TEST_EXPECT_DEATH_DIFFERENT_SIZE(X) \
-  EXPECT_DEATH(X, "^")  // ^The matrices have a different$
+// The checked statements contain commas, so wrap them in a lambda before
+// handing them to EXPECT_DEATH.
+#define GLOG_TEST_EXPECT_DEATH(REGEX, ...)       \
+  do {                                           \
+    auto glog_test_statement = [&]() { __VA_ARGS__; }; \
+    EXPECT_DEATH(glog_test_statement(), REGEX);  \
+  } while (0)
 
-#define GLOG_TEST_EXPECT_DEATH_DIFFERENT_DATA(X) \
-  EXPECT_DEATH(X, "^")  // ^The matrices are different$*/
-// TODO ignore the death tests for now
-#define GLOG_TEST_EXPECT_DEATH_DIFFERENT_SIZE(X)  X
-#define GLOG_TEST_EXPECT_DEATH_DIFFERENT_DATA(X)  X
+#define GLOG_TEST_EXPECT_DEATH_DIFFERENT_SIZE(...) \
+  GLOG_TEST_EXPECT_DEATH("^", __VA_ARGS__)  // ^The matrices have a different$
+
+#define GLOG_TEST_EXPECT_DEATH_DIFFERENT_DATA(...) \
+  GLOG_TEST_EXPECT_DEATH("^", __VA_ARGS__)  // ^The matrices are different$
 
 
 #endif  // EIGEN_CHECKS_TEST_HELPER_H_
